@@ -1,0 +1,118 @@
+﻿<Window x:Class="NadexBoxer.PositionManager"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:NadexBoxer="clr-namespace:NadexBoxer"
+             xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
+             mc:Ignorable="d" Width="500" Height="300"
+             Title="NADEX Positions" SizeToContent="Width"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <NadexBoxer:PnLTextColorConverter x:Key="PnLTextColorConverter" />
+        <NadexBoxer:DoubleTextConverter x:Key="DoubleTextConverter" />
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="1" />
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- no DataGrid in .NET 3.5 :( -->
+        <ListView Grid.Row="0" ItemsSource="{Binding Positions}" SelectedItem="{Binding SelectedItem}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Active">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsActive}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding DisplayName}"/>
+                    <!--<GridViewColumn Header="Expiration Date"  DisplayMemberBinding="{Binding Expiration}" />-->
+                    <GridViewColumn Header="Expiration Date">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <toolkit:DateTimePicker Value="{Binding Expiration}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                    <GridViewColumn Header="Position">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <ComboBox SelectedItem="{Binding MarketPosition}" ItemsSource="{x:Static NadexBoxer:PositionManagerViewModel.MarketPositionTypes}"
+                                          HorizontalAlignment="Stretch"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Type">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <ComboBox SelectedItem="{Binding ContractType}" ItemsSource="{x:Static NadexBoxer:PositionManagerViewModel.ContractTypes}"
+										  SelectionChanged="OnContractTypeSelectionChanged"
+                                          HorizontalAlignment="Stretch"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Entry Price"        DisplayMemberBinding="{Binding PricePaid}" />
+                    <GridViewColumn Header="Quantity"           DisplayMemberBinding="{Binding Quantity}" />
+                    <GridViewColumn Header="Spread Ceiling"     DisplayMemberBinding="{Binding SpreadCeiling, Converter={StaticResource DoubleTextConverter}}" />
+                    <GridViewColumn Header="Spread Floor"       DisplayMemberBinding="{Binding SpreadFloor, Converter={StaticResource DoubleTextConverter}}" />
+                    <GridViewColumn Header="Strike Price"       DisplayMemberBinding="{Binding StrikePrice, Converter={StaticResource DoubleTextConverter}}" />
+                    
+                    <GridViewColumn Header="Current PnL">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding CurrentPnL}" Foreground="{Binding CurrentPnL, Converter={StaticResource PnLTextColorConverter}}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+            <ListView.ContextMenu>
+                <ContextMenu>
+					<!-- Commands have that focus issue shit
+                    <MenuItem Header="Add new position" Command="{Binding AddPositionCommand}" IsEnabled="True" />
+                    <MenuItem Header="Remove position" Command="{Binding RemovePositionCommand}"/>
+					-->
+					<MenuItem Header="Add new position" Click="OnAddPosition" />
+					<MenuItem Header="Remove position" Click="OnRemovePosition" />
+                </ContextMenu>
+            </ListView.ContextMenu>
+        </ListView>
+       
+        <!--<GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Height="5"/>-->
+        
+        <!-- edit section-->
+        <Grid Grid.Row="2" Visibility="{Binding IsEditGridVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="4">
+            <UniformGrid Columns="2" Rows="7">
+                <TextBlock Text="Name" />
+                <TextBox Text="{Binding SelectedItem.DisplayName}" />
+
+                <TextBlock Text="Expiration" />
+                <TextBox Text="{Binding SelectedItem.Expiration}" />
+
+                <TextBlock Text="Entry Price" />
+                <TextBox Text="{Binding SelectedItem.PricePaid}" />
+
+                <TextBlock Text="Quantity" />
+                <TextBox Text="{Binding SelectedItem.Quantity}" />
+
+                <TextBlock Text="Spread Ceiling" IsEnabled="{Binding IsSpreadEditEnabled}" />
+                <TextBox Text="{Binding SelectedItem.SpreadCeiling}" IsEnabled="{Binding IsSpreadEditEnabled}" />
+
+                <TextBlock Text="Spread Floor" IsEnabled="{Binding IsSpreadEditEnabled}" />
+                <TextBox Text="{Binding SelectedItem.SpreadFloor}" IsEnabled="{Binding IsSpreadEditEnabled}"/>
+
+                <TextBlock Text="Strike Price" IsEnabled="{Binding IsStrikeEditEnabled}" />
+                <TextBox Text="{Binding SelectedItem.StrikePrice}" IsEnabled="{Binding IsStrikeEditEnabled}"/>
+            </UniformGrid>
+            
+        </Grid>        
+    </Grid>
+</Window>
